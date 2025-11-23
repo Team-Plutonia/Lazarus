@@ -1,0 +1,207 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Lazarus - Home</title>
+		<link rel="stylesheet" type="text/css" href="./styles.css">
+	</head>
+	<body style="overflow-x: hidden;">
+		<div class="app">
+			<div id="left-side">
+				<div>
+					<!-- LOGO -->
+					<img src="./LAZARUS-LOGO_white.png" height="50px" width="50px" style="padding:7px;  float: left;" />
+					<h2 class="science-gothic">LAZARUS</h2>
+				</div>
+				<hr style="color: #fff;">
+				<!-- SEPARATION -->
+				<button class="button">Home</button>
+				<div style="display: flex;align-items: center;justify-content: space-between;margin-top: 50px;padding: 0 15px;">
+				    <h3 style="color: #fff; margin: 0;" class="roboto">📚 Library</h3>
+				    <h1 style="margin: 0; padding-right: 10px; cursor: pointer;">+</h1>
+				</div>
+				<div id="vert-line" style="left: 24%;"></div>
+			</div>
+			<div id="right-side" class="roboto middle">
+				<div id="add-app-msg" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; flex-direction: column; background-color: #242424; width: 430px; height: 220px; border-radius: 25px;">
+				    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
+				        <h3 style="color: #fff; margin: 0;" class="roboto">Add A Game</h3>
+				        <h1 id="close-popup" style="margin: 0; cursor: pointer;">X</h1>
+				    </div>
+				    <div style="">
+				    	<div style="background-color: firebrick;padding: 3px;width: 200px;height: 120;float: inline-start;left: 5px;position: absolute;border: red solid 2px;border-radius: 5px;display: none;" id="noname-error">
+				    		<h3>Error!</h3>
+				    		<hr>
+				    		<p>Cannot add a game with empty name!</p>
+				    	</div>
+				    	<div style="float: right; right: 20px;position: absolute;"><br>
+				    		<span>Game Name</span><br>
+					        <input type="text" placeholder="My Very Cool Game" id="game-name" >
+				    	</div>
+				    	<div style="float: left; left: 20px;position: absolute;top: 40%;">
+						    <span>Game Path</span><br>
+						    <input type="text" id="game-path" placeholder="~/Games/MyGame" readonly><br>
+						    <button id="browse-btn">Browse</button>
+						</div>
+				    	<div style="float: right; right: 20px; bottom:20px; position: absolute;">
+				    		<a style="background-color: #660b80;padding: 5px;border-radius: 5px;cursor: pointer;" onclick="addgame()">Add</a>
+				    	</div>
+				    </div>
+				</div>
+				<h1>Work In Progress...</h1>
+			</div>
+		</div>
+		<script>
+			function saveLibrary() {
+				const items = [...document.querySelectorAll("#library-games .game-item")].map(el => ({
+					name: el.querySelector(".game-name").textContent,
+					path: el.dataset.path
+				}));
+				localStorage.setItem("library", JSON.stringify(items));
+			}
+
+			function loadLibrary() {
+				const data = JSON.parse(localStorage.getItem("library") || "[]");
+
+				let container = document.getElementById("library-games");
+				if (!container) {
+					container = document.createElement("div");
+					container.id = "library-games";
+					container.style.marginTop = "10px";
+					document.querySelector("#left-side").appendChild(container);
+				}
+
+				container.innerHTML = "";
+
+				data.forEach(g => {
+					const item = document.createElement("div");
+					item.classList.add("game-item");
+					item.dataset.path = g.path;
+
+					item.style.padding = "5px 10px";
+					item.style.margin = "5px 0";
+					item.style.backgroundColor = "#33054c";
+					item.style.color = "#fff";
+					item.style.borderRadius = "5px";
+
+					const nameNode = document.createElement("span");
+					nameNode.classList.add("game-name");
+					nameNode.textContent = g.name;
+
+					const playBtn = document.createElement("button");
+					playBtn.textContent = "Play";
+					playBtn.style.marginLeft = "10px";
+					playBtn.addEventListener("click", () => {
+						const path = item.dataset.path;
+						if (!path) return console.error("Path missing!");
+						window.api.playGame(path);
+					});
+
+					item.appendChild(nameNode);
+					item.appendChild(playBtn);
+					container.appendChild(item);
+				});
+			}
+
+			window.addEventListener("load", loadLibrary);
+		</script>
+		<script>
+			document.getElementById('close-popup').addEventListener('click', function() {
+		    	document.getElementById('noname-error').style.display = 'none';
+		    	document.getElementById('add-app-msg').style.display = 'none';
+			});
+
+			    document.querySelector('#left-side h1').addEventListener('click', function() {
+			    document.getElementById('add-app-msg').style.display = 'block';
+		    });
+
+		   	function addgame() {
+				    const name = document.getElementById("game-name").value.trim();
+				    const path = document.getElementById("game-path").value.trim();
+
+				    if (!name || !path) {
+				        alert("Please enter name AND path!");
+				        return;
+				    }
+
+				    let container = document.getElementById("library-games");
+				    if (!container) {
+				        container = document.createElement("div");
+				        container.id = "library-games";
+				        container.style.marginTop = "10px";
+				        document.querySelector('#left-side').appendChild(container);
+				    }
+
+				    const item = document.createElement("div");
+				    item.classList.add("game-item");
+				    item.dataset.path = path;
+
+				    item.style.padding = "5px 10px";
+				    item.style.margin = "5px 0";
+				    item.style.backgroundColor = "#33054c";
+				    item.style.color = "#fff";
+				    item.style.borderRadius = "5px";
+
+			    	const nameNode = document.createElement("span");
+				    nameNode.classList.add("game-name");
+				    nameNode.textContent = name;
+
+				    const playBtn = document.createElement("button");
+				    playBtn.textContent = "Play";
+				    playBtn.style.marginLeft = "10px";
+				    playBtn.addEventListener("click", () => window.api.playGame(path));
+
+				    item.appendChild(nameNode);
+				    item.appendChild(playBtn);
+				    container.appendChild(item);
+
+				    saveLibrary();
+
+				    document.getElementById("add-app-msg").style.display = "none";
+				}
+
+
+				document.getElementById('browse-btn').addEventListener('click', async () => {
+				    const path = await window.api.selectFile();
+				    if (path) document.getElementById('game-path').value = path;
+				});
+				document.getElementById('play-btn').addEventListener('click', () => {
+					const path = document.getElementById('game-path').value;
+					if (path) window.api.playGame(path);
+				});
+		</script>
+		<div id="context-menu" style="position: fixed; display: none; background: #242424; border: 1px solid #555; border-radius: 5px; padding: 5px 0; z-index: 9999;">
+		    <div id="delete-option" style="padding: 8px 20px; cursor: pointer; color: white;">🗑️ Delete</div>
+		</div>
+		<script>
+			let clickedGame = null;
+
+			document.addEventListener("contextmenu", (e) => {
+			    let target = e.target.closest(".game-item");
+					if (target) {
+					    e.preventDefault();
+					    clickedGame = target;
+			        
+			        clickedGame = e.target;
+
+			        const menu = document.getElementById("context-menu");
+			        menu.style.display = "block";
+			        menu.style.left = e.pageX + "px";
+		    	    menu.style.top = e.pageY + "px";
+			    }
+			});
+
+			document.addEventListener("click", () => {
+		    	document.getElementById("context-menu").style.display = "none";
+			});
+
+			document.getElementById("delete-option").addEventListener("click", () => {
+			    if (clickedGame) {
+		    	    clickedGame.remove();
+		    	    saveLibrary();
+		        	clickedGame = null;
+			    }
+			    document.getElementById("context-menu").style.display = "none";
+			});
+		</script>
+	</body>
+</html>
