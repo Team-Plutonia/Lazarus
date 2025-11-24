@@ -1,16 +1,18 @@
+<!DOCTYPE html>
 <html>
 	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta charset="UTF-8">
 		<title>Lazarus - Home</title>
 		<link rel="stylesheet" type="text/css" href="./styles.css">
 	</head>
-	<body style="overflow-x: hidden;">
+	<body style="overflow-x: hidden;" onload="loadLibrary()">
 		<div class="app">
 			<div id="left-side">
-				<div>
+				<div onclick="about()">
 					<!-- LOGO -->
-					<img src="./LAZARUS-LOGO_white.png" height="50px" width="50px" style="padding:7px;  float: left;" />
-					<h2 class="science-gothic">LAZARUS</h2>
+					<img src="./LAZARUS-LOGO_white.png" height="50px" width="50px" style="padding:7px;  float: left; user-select: none;" draggable=false />
+					<h2 class="science-gothic" style="cursor: default; user-select: none;">LAZARUS</h2>
 				</div>
 				<hr style="color: #fff;">
 				<!-- SEPARATION -->
@@ -21,18 +23,13 @@
 				</div>
 				<div id="vert-line" style="left: 24%;"></div>
 			</div>
-			<div id="right-side" class="roboto middle">
+			<div id="right-side" class="roboto">
 				<div id="add-app-msg" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; flex-direction: column; background-color: #242424; width: 430px; height: 220px; border-radius: 25px;">
 				    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
-				        <h3 style="color: #fff; margin: 0;" class="roboto">Add A Game</h3>
+				        <h3 style="color: #fff; margin: 0;" class="roboto">Add a Game</h3>
 				        <h1 id="close-popup" style="margin: 0; cursor: pointer;">X</h1>
 				    </div>
 				    <div style="">
-				    	<div style="background-color: firebrick;padding: 3px;width: 200px;height: 120;float: inline-start;left: 5px;position: absolute;border: red solid 2px;border-radius: 5px;display: none;" id="noname-error">
-				    		<h3>Error!</h3>
-				    		<hr>
-				    		<p>Cannot add a game with empty name!</p>
-				    	</div>
 				    	<div style="float: right; right: 20px;position: absolute;"><br>
 				    		<span>Game Name</span><br>
 					        <input type="text" placeholder="My Very Cool Game" id="game-name" >
@@ -47,9 +44,170 @@
 				    	</div>
 				    </div>
 				</div>
-				<h1>Work In Progress...</h1>
+				<!-- Banner MUST BE in 320x100px!! -->
+				<img src="./GZDOOM.png" id="banner" draggable="false" />
+				<script>
+					async function get_gamename() {
+						const banner_full_name = document.getElementById("banner").src;
+					    const banner_name = banner_full_name.split('/').pop();
+
+					    console.log("Banner detected:", banner_name);
+
+			    		try {
+					        const gameName = await findGame(banner_name);
+					        console.log("Game identified:", gameName);
+
+					        const gameUrl = await getGame(gameName);
+			    		    console.log("Download URL:", gameUrl);
+
+					        const file_name = gameUrl.split('/').pop();
+					        console.log("File name:", file_name);
+
+			    		    return gameName
+					    } catch (err) {
+					        console.error(err);
+					    }
+					}
+
+					async function get_filename() {
+						const banner_full_name = document.getElementById("banner").src;
+					    const banner_name = banner_full_name.split('/').pop();
+
+					    console.log("Banner detected:", banner_name);
+
+					    try {
+					        const gameName = await findGame(banner_name);
+			    		    console.log("Game identified:", gameName);
+
+					        //const gameUrl = await getGame(gameName);
+					        //console.log("Download URL:", gameUrl);
+
+					        const file_name = gameUrl.split('/').pop();
+			    		    console.log("File name:", file_name);
+
+					        return file_name
+					    } catch (err) {
+					        console.error(err);
+					    }
+					}
+
+					async function get_fileurl() {
+						const banner_full_name = document.getElementById("banner").src;
+					    const banner_name = banner_full_name.split('/').pop();
+
+					    console.log("Banner detected:", banner_name);
+
+					    try {
+			    		    const gameName = await findGame(banner_name);
+					        console.log("Game identified:", gameName);
+
+					        const gameUrl = await getGame(gameName);
+			    		    console.log("Download URL:", gameUrl);
+
+					        //const file_name = gameUrl.split('/').pop();
+					        //console.log("File name:", file_name);
+
+					        return gameUrl
+					    } catch (err) {
+					        console.error(err);
+					    }
+					}
+
+					document.getElementById("banner").addEventListener("click", async () => {
+					    try {
+					        const bannerFullName = document.getElementById("banner").src;
+					        const bannerName = bannerFullName.split('/').pop();
+
+					        const gameName = await findGame(bannerName);
+					        const fileUrl = await getGame(gameName);
+					        const fileName = fileUrl.split('/').pop();
+
+					        openDownloadUI(gameName, fileName, fileUrl);
+					    } catch (err) {
+					        console.error(err);
+					        alert("Failed to get game info");
+					    }
+					});
+				</script>
+				<!--<h1>Work In Progress...</h1>-->
 			</div>
 		</div>
+		<script>
+			function getApps() {
+				return fetch("https://raw.githubusercontent.com/Team-Plutonia/Lazarus-Back/refs/heads/main/apps.json")
+			        .then(r => r.json());
+			}
+
+			async function findGame(name) {
+				const list = await getApps();
+
+			    if (!list[name]) {
+		        	throw new Error("Banner not found in JSON!");
+				}
+
+			    return list[name];
+			}
+
+			function getList() {
+			    return fetch("https://raw.githubusercontent.com/Team-Plutonia/Lazarus-Back/refs/heads/main/downloads.json")
+			        .then(r => r.json());
+			}
+
+			async function getGame(name) {
+			    const list = await getList();
+
+			    if (!list[name]) {
+		        	throw new Error("Game not found in JSON");
+				}
+
+			    return list[name];
+			}
+
+			async function downloadGames(name, path) {
+			    const url = await getGame(name);
+			    console.log("Downloading:", url, "→", path);
+
+			    await window.api.downloadGame(url, path);
+
+			    alert("Downloaded!");
+			}
+
+			//downloadGames("Test", "/home/niko/Downloads/test.bin");
+			//var game = findGame("TEST_BANNER.png");
+			//downloadGames(game, "/home/niko/Desktop/test.bin");
+			async function downloadBanner() {
+			    const banner_full_name = document.getElementById("banner").src;
+			    const banner_name = banner_full_name.split('/').pop();
+
+			    console.log("Banner detected:", banner_name);
+
+			    try {
+			        const gameName = await findGame(banner_name);
+			        console.log("Game identified:", gameName);
+
+			        const gameUrl = await getGame(gameName);
+			        console.log("Download URL:", gameUrl);
+
+			        const file_name = gameUrl.split('/').pop();
+			        console.log("File name:", file_name);
+
+			        const final_path = "/home/niko/Desktop/" + file_name;
+
+			        console.log("Final save path:", final_path);
+
+			        await window.api.downloadGame(gameUrl, final_path);
+
+			        alert("Downloaded!");
+			    } catch (err) {
+			        console.error(err);
+			    }
+			}
+		</script>
+		<script>
+			function about() {
+				alert("LAZARUS | About\n\nVersion : ALPHA 2\nAuthor : Oxyru\nDescription : Just a Game Launcher!");
+			}
+		</script>
 		<script>
 			function saveLibrary() {
 				const items = [...document.querySelectorAll("#library-games .game-item")].map(el => ({
@@ -102,11 +260,10 @@
 				});
 			}
 
-			window.addEventListener("load", loadLibrary);
+			//window.addEventListener("load", loadLibrary);
 		</script>
 		<script>
 			document.getElementById('close-popup').addEventListener('click', function() {
-		    	document.getElementById('noname-error').style.display = 'none';
 		    	document.getElementById('add-app-msg').style.display = 'none';
 			});
 
@@ -148,7 +305,8 @@
 				    const playBtn = document.createElement("button");
 				    playBtn.textContent = "Play";
 				    playBtn.style.marginLeft = "10px";
-				    playBtn.addEventListener("click", () => window.api.playGame(path));
+				    //playBtn.addEventListener("click", () => window.api.playGame(path));
+				    //playBtn.onclick('startgame()');
 
 				    item.appendChild(nameNode);
 				    item.appendChild(playBtn);
@@ -164,10 +322,46 @@
 				    const path = await window.api.selectFile();
 				    if (path) document.getElementById('game-path').value = path;
 				});
-				document.getElementById('play-btn').addEventListener('click', () => {
+				//document.getElementById('play-btn').addEventListener('click', () => {
+					//const path = document.getElementById('game-path').value;
+					//if (path) window.api.playGame(path);
+				//});
+				function startgame() {
 					const path = document.getElementById('game-path').value;
 					if (path) window.api.playGame(path);
-				});
+				}
+		</script>
+		<div id="download-popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:420px; padding:20px; background:#242424; border-radius:15px; color:white;box-shadow:0 0 15px #000; z-index:9999;" class="roboto">
+				<div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
+				        <h3 style="color: #fff; margin: 0;" class="roboto">Download a Game</h3>
+				        <h1 id="close-gd-popup" style="margin: 0; cursor: pointer;">X</h1>
+				    </div>
+			<div>
+		       	<b>Game:</b> <span id="dl-game-name">???</span><br>
+		        <b>File:</b> <span id="dl-file-name">???</span>
+		    </div>
+	    	<br>
+			<div>
+		        <b>Install to:</b><br>
+	        	<input id="dl-folder" type="text" readonly style="width:90%; background:#333; color:white;">
+		        <button id="dl-browse" style="margin-left:5px;">Browse</button>
+			</div>
+		    <br>
+			<div style="width:100%; height:10px; background:#444; border-radius:5px;">
+	        	<div id="dl-progress" style="height:10px; width:0%; background:#660b80; border-radius:5px;"></div>
+			   </div>
+			<p id="dl-log" style="font-size:12px; opacity:0.75; margin-top:5px; height:60px; overflow-y:auto;"></p>
+			<button id="dl-start" style="margin-top:10px; padding:8px 15px; background:#660b80;border:none; color:white; border-radius:5px;">
+	       		Start Download
+		    </button>
+		</div>
+		<script>
+			document.getElementById('close-gd-popup').addEventListener('click', function() {
+		    	document.getElementById('download-popup').style.display = 'none';
+			});
+			document.getElementById('dl-start').addEventListener('click', function() {
+				document.getElementById('close-gd-popup').style.display = 'none';
+			});
 		</script>
 		<div id="context-menu" style="position: fixed; display: none; background: #242424; border: 1px solid #555; border-radius: 5px; padding: 5px 0; z-index: 9999;">
 		    <div id="delete-option" style="padding: 8px 20px; cursor: pointer; color: white;">🗑️ Delete</div>
@@ -203,5 +397,6 @@
 			    document.getElementById("context-menu").style.display = "none";
 			});
 		</script>
+		<script src="./renderer.js"></script>
 	</body>
 </html>
