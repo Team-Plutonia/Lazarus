@@ -5,7 +5,7 @@ Lazarus is game launcher like other well known such as Steam or even Epic Games!
 
 Lazarus Doesn't collect any sort of data about you nor sell some of!
 ## Preview
-![preview-1](https://files.catbox.moe/07fg8r.png)
+![preview-1](https://files.catbox.moe/vwsqyy.png)
 ## !!IMPORTANT DISCLAIMER!!
 > [!IMPORTANT]  
 > This program is STILL in its early days!
